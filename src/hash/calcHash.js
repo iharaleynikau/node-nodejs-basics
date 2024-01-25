@@ -1,5 +1,18 @@
+import { createHash } from 'node:crypto';
+import { createReadStream } from 'node:fs';
+
 const calculateHash = async () => {
-    // Write your code here 
+  const hash = createHash('sha256');
+
+  const stream = createReadStream('./files/fileToCalculateHashFor.txt');
+
+  stream.on('data', chunk => {
+    hash.update(chunk);
+  });
+
+  stream.on('end', () => {
+    console.log(hash.digest('hex'));
+  });
 };
 
 await calculateHash();
