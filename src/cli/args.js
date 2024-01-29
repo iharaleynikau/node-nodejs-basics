@@ -1,17 +1,14 @@
-// node args.js --propName value --prop2Name value2
-
 const parseArgs = () => {
-  const args = process.argv.slice(2);
-
-  const propNameIndex = 0;
-  const prop2NameIndex = 2;
+  const allArgs = process.argv.slice(2);
+  const args = allArgs.filter((item, index) => (index % 2) - 1);
+  const argsValues = allArgs.filter((item, index) => index % 2);
 
   const result = [];
 
-  if (propNameIndex > -1 && prop2NameIndex > -1) {
+  for (let arg of args) {
+    let index = args.indexOf(arg);
     result.push(
-      `${args[propNameIndex]} is ${args[propNameIndex + 1]}`,
-      `${args[prop2NameIndex]} is ${args[prop2NameIndex + 1]}`
+      `${arg} is ${argsValues[index] === undefined ? '[value was not passed]' : argsValues[index]}`
     );
   }
 
