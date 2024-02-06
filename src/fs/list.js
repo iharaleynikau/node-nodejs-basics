@@ -7,13 +7,17 @@ const list = async () => {
 
   if (!isFileFolderExisting) {
     throw new Error('FS operation failed');
-  } else {
-    readdir(fileFolder, (err, files) => {
-      files.forEach(file => {
-        console.log(file);
-      });
-    });
   }
+
+  const promise = new Promise((resolve, reject) => {
+    readdir(fileFolder, (err, files) => {
+      resolve(files);
+    });
+  });
+
+  const res = await promise;
+
+  console.log(res);
 };
 
 await list();

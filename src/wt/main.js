@@ -1,38 +1,39 @@
-import { Worker, isMainThread, threadId, workerData } from 'node:worker_threads';
-import os from 'node:os';
+import { Worker } from 'worker_threads';
+import os from 'os';
 
 const performCalculations = async () => {
-  const cpuCoresCount = os.cpus().length;
+  const workerPath = new URL('./worker.js', import.meta.url);
 
-  let startNumber = 10;
+  const cpuCount = os.cpus().length;
+  const startCount = 10;
 
-  const resultColl = [];
+  const threads = new Set();
 
-  for (let i = 1; i <= cpuCoresCount; i++) {
-    const worker = new Worker('./worker.js', {
-      workerData: startNumber++
+  for (let i = startCount; i < cpuCount + startCount; i++) {
+    const workerPromise = new Promise((resolve, reject) => {
+      const worker = new Worker(workerPath, { workerData: i });
+
+      worker.on('error', () => reject());
+      worker.on('message', msg => resolve(msg));
     });
 
-    worker.on('error', err => {
-      resultColl.push({
-        status: 'error',
-        data: null
-      });
-    });
-
-    worker.once('message', result => {
-      resultColl.push({
-        status: 'resolved',
-        data: result
-      });
-
-      if (resultColl.length === cpuCoresCount) {
-        console.log(resultColl);
-      }
-    });
-
-    worker.on('exit', () => {});
+    threads.add(workerPromise);
   }
+
+  const res = await Promise.allSettled(threads);
+  const calcData = res.map(({ status, value }) =>
+    status === 'fulfilled'
+      ? {
+          data: value,
+          status: 'resolved'
+        }
+      : {
+          data: null,
+          status: 'error'
+        }
+  );
+
+  console.log(calcData);
 };
 
 await performCalculations();
